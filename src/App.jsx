@@ -9,8 +9,9 @@ const App = () => {
     [0, 0, 0, 0],
   ]);
 
-  // Thêm state để theo dõi các ô vừa mới được merge hoặc sinh ra để tạo hiệu ứng
   const [highlightedTiles, setHighlightedTiles] = useState([]);
+  // STATE MỚI: Theo dõi vị trí chạm bắt đầu
+  const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
 
   const initializeGame = () => {
     let newBoard = Array(4).fill().map(() => Array(4).fill(0));
@@ -30,40 +31,30 @@ const App = () => {
     if (emptyTiles.length > 0) {
       let { r, c } = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
       currentBoard[r][c] = Math.random() < 0.9 ? 2 : 4;
-      // Đánh dấu ô mới để animation
       setHighlightedTiles(prev => [...prev, `${r}-${c}`]);
     }
   };
 
-
-  // Hàm lật ngược hàng: [1, 2, 3, 4] -> [4, 3, 2, 1]
   const reverse = (matrix) => matrix.map(row => [...row].reverse());
-
-  // Hàm chuyển vị (đổi hàng thành cột): Dùng để xử lý UP/DOWN
   const transpose = (matrix) => {
     return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex]));
   };
 
-  // Hàm dồn số sang trái (Core logic)
   const slideLeft = (board) => {
     let newBoard = [];
-    let scoreAdd = 0; // Có thể dùng tính điểm sau này
-
     for (let i = 0; i < 4; i++) {
-      let row = board[i].filter(num => num !== 0); // Bỏ số 0
+      let row = board[i].filter(num => num !== 0);
       let newRow = [];
 
       for (let j = 0; j < row.length; j++) {
-        // Nếu 2 số cạnh nhau bằng nhau -> Gộp
         if (j < row.length - 1 && row[j] === row[j + 1]) {
           newRow.push(row[j] * 2);
-          j++; // Bỏ qua số tiếp theo vì đã gộp
+          j++;
         } else {
           newRow.push(row[j]);
         }
       }
 
-      // Điền lại số 0 cho đủ 4 ô
       while (newRow.length < 4) {
         newRow.push(0);
       }
@@ -73,7 +64,7 @@ const App = () => {
   };
 
   const move = useCallback((direction) => {
-    setHighlightedTiles([]); // Reset highlight cũ
+    setHighlightedTiles([]);
     setBoard((prevBoard) => {
       let newBoard = JSON.parse(JSON.stringify(prevBoard));
       let changed = false;
@@ -88,10 +79,8 @@ const App = () => {
         newBoard = reverse(newBoard);
       }
 
-      // Thực hiện slide left
       let processedBoard = slideLeft(newBoard);
 
-      // Kiểm tra xem có thay đổi không
       if (JSON.stringify(newBoard) !== JSON.stringify(processedBoard)) {
         changed = true;
       }
@@ -123,6 +112,50 @@ const App = () => {
     }
   }, [move]);
 
+  // HÀM XỬ LÝ CHẠM (TOUCH HANDLERS)
+  const onTouchStart = (e) => {
+    setTouchStart({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    });
+    // Ngăn trình duyệt cuộn khi bắt đầu chạm
+    // e.preventDefault(); 
+    // Tuy nhiên, việc preventDefault ở đây có thể ngăn tất cả các hành động cuộn khác
+    // nên ta có thể để nó ở onTouchMove nếu cần thiết.
+  };
+
+  const onTouchEnd = (e) => {
+    if (!e.changedTouches || e.changedTouches.length === 0) return;
+
+    const touchEnd = {
+      x: e.changedTouches[0].clientX,
+      y: e.changedTouches[0].clientY,
+    };
+
+    const dx = touchEnd.x - touchStart.x;
+    const dy = touchEnd.y - touchStart.y;
+    const SWIPE_THRESHOLD = 30; // Vuốt tối thiểu 30px để kích hoạt
+
+    if (Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(dy) > SWIPE_THRESHOLD) {
+      if (Math.abs(dx) > Math.abs(dy)) {
+        // Vuốt Ngang
+        if (dx > 0) {
+          move("RIGHT");
+        } else {
+          move("LEFT");
+        }
+      } else {
+        // Vuốt Dọc
+        if (dy > 0) {
+          move("DOWN");
+        } else {
+          move("UP");
+        }
+      }
+    }
+  };
+  // KẾT THÚC HÀM XỬ LÝ CHẠM
+
   useEffect(() => {
     initializeGame();
   }, []);
@@ -132,7 +165,6 @@ const App = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  // --- HELPERS GIAO DIỆN ---
   const getTileStyle = (value) => {
     switch (value) {
       case 0: return "bg-[#ffebee]";
@@ -163,11 +195,15 @@ const App = () => {
         </button>
       </div>
 
-      <div className="bg-[#e997b6] p-3 rounded-lg w-80 h-80 sm:w-96 sm:h-96 relative shadow-xl">
+      <div
+        className="bg-[#e997b6] p-3 rounded-lg w-80 h-80 sm:w-96 sm:h-96 relative shadow-xl"
+        // GẮN SỰ KIỆN VUỐT VÀO DIV CHỨA BẢNG GAME
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         <div className="grid grid-cols-4 grid-rows-4 gap-3 w-full h-full">
           {board.map((row, rIndex) =>
             row.map((val, cIndex) => {
-              // Kiểm tra xem ô này có phải ô mới sinh ra không để thêm animation
               const isNew = highlightedTiles.includes(`${rIndex}-${cIndex}`);
 
               return (
@@ -191,7 +227,6 @@ const App = () => {
         </div>
       </div>
 
-      {/* Thêm keyframe cho animation pop vào style global hoặc trong CSS file */}
       <style>{`
         @keyframes pop {
           0% { transform: scale(0.5); opacity: 0; }
