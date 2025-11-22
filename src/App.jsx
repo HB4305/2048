@@ -113,6 +113,14 @@ const App = () => {
   }, [move]);
 
   // HÀM XỬ LÝ CHẠM (TOUCH HANDLERS)
+
+  const onTouchStart = (e) => {
+    setTouchStart({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    });
+  };
+
   const onTouchMove = (e) => {
     e.preventDefault();
   };
@@ -190,6 +198,7 @@ const App = () => {
         className="bg-[#e997b6] p-3 rounded-lg w-80 h-80 sm:w-96 sm:h-96 relative shadow-xl"
         // GẮN SỰ KIỆN VUỐT VÀO DIV CHỨA BẢNG GAME
         onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
         <div className="grid grid-cols-4 grid-rows-4 gap-3 w-full h-full">
