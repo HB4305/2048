@@ -195,11 +195,14 @@ const App = () => {
       </div>
 
       <div
+        // Sửa đổi Tailwind: touch-action: none; không có sẵn trong Tailwind mặc định
+        // Chúng ta sẽ thêm style trực tiếp hoặc dùng CSS thuần (xem dưới)
         className="bg-[#e997b6] p-3 rounded-lg w-80 h-80 sm:w-96 sm:h-96 relative shadow-xl"
-        // GẮN SỰ KIỆN VUỐT VÀO DIV CHỨA BẢNG GAME
+        style={{ touchAction: 'none' }} // <-- THÊM DÒNG NÀY
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
+
       >
         <div className="grid grid-cols-4 grid-rows-4 gap-3 w-full h-full">
           {board.map((row, rIndex) =>
