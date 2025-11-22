@@ -10,7 +10,6 @@ const App = () => {
   ]);
 
   const [highlightedTiles, setHighlightedTiles] = useState([]);
-  // STATE MỚI: Theo dõi vị trí chạm bắt đầu
   const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
 
   const initializeGame = () => {
@@ -69,7 +68,6 @@ const App = () => {
       let newBoard = JSON.parse(JSON.stringify(prevBoard));
       let changed = false;
 
-      // Biến đổi board về dạng "Slide Left" dựa trên hướng
       if (direction === "RIGHT") {
         newBoard = reverse(newBoard);
       } else if (direction === "UP") {
@@ -86,7 +84,6 @@ const App = () => {
       }
       newBoard = processedBoard;
 
-      // Trả board về hướng cũ
       if (direction === "RIGHT") {
         newBoard = reverse(newBoard);
       } else if (direction === "UP") {
@@ -111,8 +108,6 @@ const App = () => {
       move(dir);
     }
   }, [move]);
-
-  // HÀM XỬ LÝ CHẠM (TOUCH HANDLERS)
 
   const onTouchStart = (e) => {
     setTouchStart({
@@ -195,8 +190,6 @@ const App = () => {
       </div>
 
       <div
-        // Sửa đổi Tailwind: touch-action: none; không có sẵn trong Tailwind mặc định
-        // Chúng ta sẽ thêm style trực tiếp hoặc dùng CSS thuần (xem dưới)
         className="bg-[#e997b6] p-3 rounded-lg w-80 h-80 sm:w-96 sm:h-96 relative shadow-xl"
         style={{ touchAction: 'none' }} // <-- THÊM DÒNG NÀY
         onTouchStart={onTouchStart}
