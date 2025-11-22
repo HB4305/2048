@@ -113,15 +113,8 @@ const App = () => {
   }, [move]);
 
   // HÀM XỬ LÝ CHẠM (TOUCH HANDLERS)
-  const onTouchStart = (e) => {
-    setTouchStart({
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-    });
-    // Ngăn trình duyệt cuộn khi bắt đầu chạm
-    // e.preventDefault(); 
-    // Tuy nhiên, việc preventDefault ở đây có thể ngăn tất cả các hành động cuộn khác
-    // nên ta có thể để nó ở onTouchMove nếu cần thiết.
+  const onTouchMove = (e) => {
+    e.preventDefault();
   };
 
   const onTouchEnd = (e) => {
@@ -134,18 +127,16 @@ const App = () => {
 
     const dx = touchEnd.x - touchStart.x;
     const dy = touchEnd.y - touchStart.y;
-    const SWIPE_THRESHOLD = 30; // Vuốt tối thiểu 30px để kích hoạt
+    const SWIPE_THRESHOLD = 30;
 
     if (Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(dy) > SWIPE_THRESHOLD) {
       if (Math.abs(dx) > Math.abs(dy)) {
-        // Vuốt Ngang
         if (dx > 0) {
           move("RIGHT");
         } else {
           move("LEFT");
         }
       } else {
-        // Vuốt Dọc
         if (dy > 0) {
           move("DOWN");
         } else {
